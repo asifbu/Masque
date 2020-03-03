@@ -8,20 +8,39 @@ import android.widget.TextView;
 
 public class SplashScreenActivity extends AppCompatActivity
 {
-    TextView textView;
-
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-        textView = findViewById(R.id.textview);
-        textView.setOnClickListener(new View.OnClickListener() {
+        Thread thread = new Thread()
+        {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(SplashScreenActivity.this,MainActivity.class));
+            public void run() {
+                try
+                {
+                    sleep(500);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+
+                finally {
+
+                    Intent mainIntent = new Intent(SplashScreenActivity.this ,MainActivity.class);
+                    startActivity(mainIntent);
+                }
+
             }
-        });
+        };
+        thread.start();
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        finish();
+    }
+
 }

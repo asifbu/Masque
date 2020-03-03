@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,9 +31,13 @@ import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
@@ -44,13 +49,18 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mDatabase;
     private FirebaseRecyclerAdapter<Sub_admin, SubViewHolder> mPeopleRVAdapter;
     Dialog dialog;
+    private DatabaseReference getUserDataReference;
+    private String AdminCode;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Mosqus");
         setSupportActionBar(toolbar);
 
 
@@ -79,33 +89,43 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onClick(View v) {
                         final String Code = model.getCode();
+                        final String Area =model.getArea();
+                        final String sub_admin_name =model.getName();
+                        final String sub_admin_id =model.getId();
 
-                        dialog = new Dialog(MainActivity.this);
-                        dialog.setContentView(R.layout.dialog_code);
-                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                       // Toast.makeText(MainActivity.this, sub_admin_id, Toast.LENGTH_SHORT).show();
 
-                        final EditText write_code =      dialog.findViewById(R.id.write_code);
-                        Button send_code =     dialog.findViewById(R.id.send_code);
+                            dialog = new Dialog(MainActivity.this);
+                            dialog.setContentView(R.layout.dialog_code);
+                            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-                        dialog.show();
+                            final EditText write_code =      dialog.findViewById(R.id.write_code);
+                            Button send_code =     dialog.findViewById(R.id.send_code);
+
+                            dialog.show();
 
 
-                        send_code.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
+                            send_code.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
 
-                                final String User_code = write_code.getText().toString();
-                                if (Code.equals(User_code))
-                                {
-                                   // Toast.makeText(MainActivity.this, "code match", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(MainActivity.this,HomeActivity.class);
-                                    startActivity(intent);
+                                    final String User_code = write_code.getText().toString();
+                                    if (Code.equals(User_code))
+                                    {
+                                        // Toast.makeText(MainActivity.this, "code match", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(MainActivity.this,HomeActivity.class);
+                                        intent.putExtra("area", Area);
+                                        intent.putExtra("admin", "sub_admin");
+                                        intent.putExtra("sub_admin_name", sub_admin_name);
+                                        intent.putExtra("sub_admin_id", sub_admin_id);
+                                        startActivity(intent);
+                                    }
+                                    else
+                                        Toast.makeText(MainActivity.this, "Code Not Match \n Enter With Right Code", Toast.LENGTH_SHORT).show();
+
                                 }
-                                else
-                                    Toast.makeText(MainActivity.this, "Code Not Match \n Enter With Right Code", Toast.LENGTH_SHORT).show();
+                            });
 
-                            }
-                        });
                     }
                 });
               //  holder.setDesignation(model.getCode());
@@ -130,17 +150,6 @@ public class MainActivity extends AppCompatActivity
 
 
 
-
-
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -209,17 +218,89 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
+        if (id == R.id.admin)
+        {
+
+
+
+            getUserDataReference = FirebaseDatabase.getInstance().getReference().child("admin").child("1");
+          //  storeProfileImage = FirebaseStorage.getInstance().getReference().child("profile_images");
+
+            getUserDataReference.addValueEventListener(new ValueEventListener() {
+                           @Override
+                           public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                               if (dataSnapshot.hasChild("code")) {
+                                   // String name = dataSnapshot.child("applicant_name").getValue().toString();
+                                   String code = dataSnapshot.child("code").getValue().toString();
+
+                                   //   displayName.setText(name);
+                                   //  Picasso.get().load(image).into(settingDisplayProfileImage);
+                                   //   Picasso.get().load(imageUri).into(settingDisplayProfileImage);
+
+                                   // Do stuff
+                                   AdminCode =code;
+                               } else {
+                                   Toast.makeText(MainActivity.this, "Please Insert Your Image", Toast.LENGTH_SHORT).show();
+                               }
+                           }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+
+
+            });
+
+
+            dialog = new Dialog(MainActivity.this);
+            dialog.setContentView(R.layout.dialog_code);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+            final EditText write_code =      dialog.findViewById(R.id.write_code);
+            Button send_code =     dialog.findViewById(R.id.send_code);
+
+            dialog.show();
+
+
+            send_code.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    final String User_code = write_code.getText().toString();
+                    if (AdminCode.equals(User_code))
+                    {
+                        // Toast.makeText(MainActivity.this, "code match", Toast.LENGTH_SHORT).show();
+                       // Intent intent = new Intent(MainActivity.this,HomeActivity.class);
+                       // startActivity(intent);
+                       // startActivity(new Intent(MainActivity.this,AdminAreaActivity.class));
+                        Intent intent = new Intent(MainActivity.this,AdminAreaActivity.class);
+                        intent.putExtra("collection","not_collection");
+                        startActivity(intent);
+                    }
+                    else
+                        Toast.makeText(MainActivity.this, "Code Not Match \n Enter With Right Code", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
+
+
+        }      //  startActivity(new Intent(MainActivity.this,AdminAreaActivity.class));
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+         else if (id == R.id.nav_gallery)
+         {
 
-        } else if (id == R.id.nav_slideshow) {
+            Intent intent = new Intent(MainActivity.this,AdminAreaActivity.class);
+            intent.putExtra("collection","collection");
+            startActivity(intent);
 
-        } else if (id == R.id.nav_manage) {
+        }
+        else if (id == R.id.nav_subadmin)
+        {
 
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+            Intent intent = new Intent(MainActivity.this,SubAdminHistoryActivity.class);
+            startActivity(intent);
 
         }
 
